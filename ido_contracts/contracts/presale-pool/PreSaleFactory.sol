@@ -7,7 +7,7 @@ import "../libraries/Ownable.sol";
 import "../libraries/Pausable.sol";
 import "../libraries/Initializable.sol";
 
-contract PreSaleFactory is Ownable, Pausable, Initializable {
+contract PreSaleFactory is Ownable, Pausable {
     // Array of created Pools Address
     address[] public allPools;
     // Mapping from User token. From tokens to array of created Pools for token
@@ -20,7 +20,7 @@ contract PreSaleFactory is Ownable, Pausable, Initializable {
         uint256 poolId
     );
 
-    function initialize() external initializer {
+    constructor() {
         paused = false;
         owner = msg.sender;
     }
@@ -40,11 +40,10 @@ contract PreSaleFactory is Ownable, Pausable, Initializable {
      * @param _token Address of token want to query
      * @return Created PreSalePool Address
      */
-    function getCreatedPoolsByToken(address _creator, address _token)
-        public
-        view
-        returns (address[] memory)
-    {
+    function getCreatedPoolsByToken(
+        address _creator,
+        address _token
+    ) public view returns (address[] memory) {
         return getPools[_creator][_token];
     }
 
@@ -54,11 +53,10 @@ contract PreSaleFactory is Ownable, Pausable, Initializable {
      * @param _token Address of token want to query
      * @return Return number of created pool
      */
-    function getCreatedPoolsLengthByToken(address _creator, address _token)
-        public
-        view
-        returns (uint256)
-    {
+    function getCreatedPoolsLengthByToken(
+        address _creator,
+        address _token
+    ) public view returns (uint256) {
         return getPools[_creator][_token].length;
     }
 
@@ -90,8 +88,9 @@ contract PreSaleFactory is Ownable, Pausable, Initializable {
         require(_offeredRate != 0, "ICOFactory::ZERO_OFFERED_RATE");
         bytes memory bytecode = type(PreSalePool).creationCode;
         uint256 tokenIndex = getCreatedPoolsLengthByToken(msg.sender, _token);
-        bytes32 salt =
-            keccak256(abi.encodePacked(msg.sender, _token, tokenIndex));
+        bytes32 salt = keccak256(
+            abi.encodePacked(msg.sender, _token, tokenIndex)
+        );
         assembly {
             pool := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
