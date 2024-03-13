@@ -81,20 +81,14 @@ contract PreSaleFactory is Ownable, Pausable {
         uint256 _offeredRate,
         address _wallet,
         address _signer
-    ) external whenNotPaused returns (address pool) {
+    ) external whenNotPaused returns (address poolAddress) {
         require(_token != address(0), "ICOFactory::ZERO_ADDRESS");
         require(_duration != 0, "ICOFactory::ZERO_DURATION");
         require(_wallet != address(0), "ICOFactory::ZERO_ADDRESS");
         require(_offeredRate != 0, "ICOFactory::ZERO_OFFERED_RATE");
-        bytes memory bytecode = type(PreSalePool).creationCode;
-        uint256 tokenIndex = getCreatedPoolsLengthByToken(msg.sender, _token);
-        bytes32 salt = keccak256(
-            abi.encodePacked(msg.sender, _token, tokenIndex)
-        );
-        assembly {
-            pool := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        }
-        IPool(pool).initialize(
+        PreSalePool pool = new PreSalePool();
+        poolAddress = address(pool);
+        IPool(poolAddress).initialize(
             _token,
             _duration,
             _openTime,
@@ -104,9 +98,14 @@ contract PreSaleFactory is Ownable, Pausable {
             _wallet,
             _signer
         );
-        getPools[msg.sender][_token].push(pool);
-        allPools.push(pool);
+        getPools[msg.sender][_token].push(poolAddress);
+        allPools.push(poolAddress);
 
-        emit PresalePoolCreated(msg.sender, _token, pool, allPools.length - 1);
+        emit PresalePoolCreated(
+            msg.sender,
+            _token,
+            poolAddress,
+            allPools.length - 1
+        );
     }
 }
